@@ -6,24 +6,24 @@ class FatTopo(Topo):
         vertexCount = count
 
         self.hosts_ = [
-                self.addHost('h%d' % hostId, ip='10.0.%d/27' % hostId)
+                self.addHost('h%d' % (hostId + 1), ip='10.0.%d/27' % (hostId + 1))
                 for hostId in range(((vertexCount/2)**2) * vertexCount)]
 
         self.switches_ = [
-                self.addSwitch('Edge%d' % switchId, dpid=("%0.2X" % (switchId+1)))
+                self.addSwitch('Edge%d' % switchId, dpid=("%0.2X" % (switchId+1)), protocols='OpenFlow13')
                 for switchId in range(vertexCount * vertexCount / 2)]
 
         self.switches_ = [
-                self.addSwitch('Aggr%d' % switchId, dpid=("%0.2X" % ((vertexCount * vertexCount / 2) + switchId+1)))
+                self.addSwitch('Aggr%d' % switchId, dpid=("%0.2X" % ((vertexCount * vertexCount / 2) + switchId+1)), protocols='OpenFlow13')
                 for switchId in range(vertexCount * vertexCount / 2)]
 				
         self.switches_ = [
-                self.addSwitch('Core%d' % switchId, dpid=("%0.2X" % ((vertexCount * vertexCount) + switchId+1)))
+                self.addSwitch('Core%d' % switchId, dpid=("%0.2X" % ((vertexCount * vertexCount) + switchId+1)), protocols='OpenFlow13')
                 for switchId in range((vertexCount/2)**2)]
         
         for loop in range(vertexCount/2):
             self.hostLinks_ = [
-                    self.addLink('h%d' % eId, 'Edge%d' % (eId / (vertexCount / 2)))
+                    self.addLink('h%d' % (eId + 1), 'Edge%d' % (eId / (vertexCount / 2)))
                     for eId in xrange(loop, (((vertexCount/2)**2) * vertexCount), vertexCount / 2)]
 
         for loop in range(vertexCount/2):
