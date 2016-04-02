@@ -21,8 +21,6 @@ class Controller(app_manager.RyuApp):
                     
                     if(src == dest):
                         continue
-                    
-                    #vlan = src * 1000 + dest
 
                     if(src == (hostIp * 2) and dest == ((hostIp * 2) - 1)):
                         match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
@@ -77,8 +75,7 @@ class Controller(app_manager.RyuApp):
                         
                     if (src == dest):
                         continue
-                    
-                    # vlan = src * 1000 + dest
+                        
                     if modHostIp % 8 == 0:
                         modHostIp = 8;
                     if((dest == ((modHostIp * 2) - 1) or dest == (modHostIp * 2)) and modHostIp % 2 == 1):
@@ -153,9 +150,7 @@ class Controller(app_manager.RyuApp):
                 for src in range(1,17):
                     if (src == dest):
                         continue
-                    
-                    # vlan = src * 1000 + dest
-                    
+                        
                     if (dest > 0 and dest < 5):
                         match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
                         action = sw.ofproto_parser.OFPActionOutput(1)
