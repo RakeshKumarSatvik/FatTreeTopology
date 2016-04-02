@@ -79,7 +79,9 @@ class Controller(app_manager.RyuApp):
                         continue
                     
                     # vlan = src * 1000 + dest
-                    if(dest == ((modHostIp * 2) - 1) or dest == (modHostIp * 2)):
+                    if modHostIp % 8 == 0:
+                        modHostIp = 8;
+                    if((dest == ((modHostIp * 2) - 1) or dest == (modHostIp * 2)) and modHostIp % 2 == 1):
                         match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
                         action = sw.ofproto_parser.OFPActionOutput(1)
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
@@ -89,7 +91,8 @@ class Controller(app_manager.RyuApp):
                                 priority=1000,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)                        
-                    elif(dest == ((modHostIp * 2) + 1) or dest == ((modHostIp * 2) + 2)):
+
+                    if((dest == ((modHostIp * 2) + 1) or dest == ((modHostIp * 2) + 2)) and modHostIp % 2 == 1):
                         match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
                         action = sw.ofproto_parser.OFPActionOutput(2)
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
@@ -99,30 +102,52 @@ class Controller(app_manager.RyuApp):
                                 priority=1000,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
-                    else:
-                        action1 = sw.ofproto_parser.OFPActionOutput(3)
-                        action2 = sw.ofproto_parser.OFPActionOutput(4)
-
-                        bucket1 = sw.ofproto_parser.OFPBucket(weight=1, actions=[action1])
-                        bucket2 = sw.ofproto_parser.OFPBucket(weight=1, actions=[action2])
-
-                        group_id = 13
-                        group_mod = sw.ofproto_parser.OFPGroupMod(
-                                datapath=sw, command=ofproto.OFPGC_ADD, 
-                                type_=ofproto.OFPGT_SELECT, group_id=group_id,
-                                buckets=[bucket1, bucket2])
-                        sw.send_msg(group_mod)
-
-                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
-                        group_action = sw.ofproto_parser.OFPActionGroup(group_id)
-                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [group_action])]
                         
+                    if((dest == ((modHostIp * 2) - 1) or dest == (modHostIp * 2)) and modHostIp % 2 == 0):
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(2)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
                                 command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
-                                priority=100,
+                                priority=1000,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
-                        sw.send_msg(mod)                    
+                        sw.send_msg(mod)                        
+                        
+                    if((dest == ((modHostIp * 2) - 3) or dest == ((modHostIp * 2) - 2)) and modHostIp % 2 == 0):
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(1)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                        mod = sw.ofproto_parser.OFPFlowMod(
+                                datapath=sw, match=match, cookie=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                                priority=1000,
+                                flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                        sw.send_msg(mod)
+                        
+                    action1 = sw.ofproto_parser.OFPActionOutput(3)
+                    action2 = sw.ofproto_parser.OFPActionOutput(4)
+
+                    bucket1 = sw.ofproto_parser.OFPBucket(weight=1, actions=[action1])
+                    bucket2 = sw.ofproto_parser.OFPBucket(weight=1, actions=[action2])
+
+                    group_id = 13
+                    group_mod = sw.ofproto_parser.OFPGroupMod(
+                            datapath=sw, command=ofproto.OFPGC_ADD, 
+                            type_=ofproto.OFPGT_SELECT, group_id=group_id,
+                            buckets=[bucket1, bucket2])
+                    sw.send_msg(group_mod)
+
+                    match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                    group_action = sw.ofproto_parser.OFPActionGroup(group_id)
+                    inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [group_action])]
+                    
+                    mod = sw.ofproto_parser.OFPFlowMod(
+                            datapath=sw, match=match, cookie=0,
+                            command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                            priority=100,
+                            flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                    sw.send_msg(mod)                    
         elif(hostIp < 21):
             for dest in range(1,17):
                 for src in range(1,17):
