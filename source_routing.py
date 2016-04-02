@@ -123,52 +123,54 @@ class Controller(app_manager.RyuApp):
                                 priority=100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)                    
-        # else:
-            # for port in range(1,5):
-                # for dest in range(16):
-                    # for src in range(16):
-                        # if (src == dest):
-                            # continue
-                        
-                        # vlan = src * 1000 + dest
-                        
-                        # if (dest >= 0 and dest < 4):
-                            # match = sw.ofproto_parser.OFPMatch(in_port=port, dl_vlan=vlan)
-                            # action = sw.ofproto_parser.OFPActionOutput(1)
-                            # mod = sw.ofproto_parser.OFPFlowMod(
-                                    # datapath=sw, match=match, cookie=0,
-                                    # command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
-                                    # priority=100,
-                                    # flags=ofproto.OFPFF_SEND_FLOW_REM, actions=[action])
-                            # sw.send_msg(mod)                        
-                        # elif (dest >= 4 and dest < 8):
-                            # match = sw.ofproto_parser.OFPMatch(in_port=port, dl_vlan=vlan)
-                            # action = sw.ofproto_parser.OFPActionOutput(2)
-                            # mod = sw.ofproto_parser.OFPFlowMod(
-                                    # datapath=sw, match=match, cookie=0,
-                                    # command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
-                                    # priority=100,
-                                    # flags=ofproto.OFPFF_SEND_FLOW_REM, actions=[action])
-                            # sw.send_msg(mod)                        
-                        # elif (dest >= 8 and dest < 12):
-                            # match = sw.ofproto_parser.OFPMatch(in_port=port, dl_vlan=vlan)
-                            # action = sw.ofproto_parser.OFPActionOutput(3)
-                            # mod = sw.ofproto_parser.OFPFlowMod(
-                                    # datapath=sw, match=match, cookie=0,
-                                    # command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
-                                    # priority=100,
-                                    # flags=ofproto.OFPFF_SEND_FLOW_REM, actions=[action])
-                            # sw.send_msg(mod)
-                        # else:
-                            # match = sw.ofproto_parser.OFPMatch(in_port=port, dl_vlan=vlan)
-                            # action = sw.ofproto_parser.OFPActionOutput(4)
-                            # mod = sw.ofproto_parser.OFPFlowMod(
-                                    # datapath=sw, match=match, cookie=0,
-                                    # command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
-                                    # priority=100,
-                                    # flags=ofproto.OFPFF_SEND_FLOW_REM, actions=[action])
-                            # sw.send_msg(mod)                                                    
+        elif(hostIp < 21):
+            for dest in range(1,17):
+                for src in range(1,17):
+                    if (src == dest):
+                        continue
                     
+                    # vlan = src * 1000 + dest
+                    
+                    if (dest > 0 and dest < 5):
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(1)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                        mod = sw.ofproto_parser.OFPFlowMod(
+                                datapath=sw, match=match, cookie=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                                priority=1000,
+                                flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                        sw.send_msg(mod)
+                    elif (dest > 4 and dest < 9):
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(2)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                        mod = sw.ofproto_parser.OFPFlowMod(
+                                datapath=sw, match=match, cookie=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                                priority=1000,
+                                flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                        sw.send_msg(mod)
+                    elif (dest > 8 and dest < 13):
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(3)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                        mod = sw.ofproto_parser.OFPFlowMod(
+                                datapath=sw, match=match, cookie=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                                priority=1000,
+                                flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                        sw.send_msg(mod)
+                    elif (dest > 12 and dest < 17):
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(4)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                        mod = sw.ofproto_parser.OFPFlowMod(
+                                datapath=sw, match=match, cookie=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                                priority=1000,
+                                flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                        sw.send_msg(mod)                    
     # the rest of the code
     @set_ev_cls(dpset.EventDP)
     def switchStatus(self, ev):
