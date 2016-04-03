@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 
     
 
-    bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
+    bind(listenfd, (struct sockaddr*)&sender_addr, sizeof(sender_addr)); 
 
 
 
