@@ -17,13 +17,15 @@ typedef struct{
     uint16_t port_number;
 }trace_file;
 
-void command_parser(trace_file *input, FILE *fp) {
+int command_parser(trace_file *input, FILE *fp) {
     
     char buf[MAXDATASIZE];
     char *start_ptr, *tab_ptr;
 
+    if(fgets(buf,80,fp) == NULL)
+        return 1;
+    
     printf("\nReading from the file.\n");
-    fgets(buf,80,fp);
     tab_ptr = buf;
     do {
         start_ptr = tab_ptr;
@@ -35,6 +37,7 @@ void command_parser(trace_file *input, FILE *fp) {
         printf("PortNumber : %d\n",input->port_number);
 
     } while(tab_ptr != NULL);    
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -46,7 +49,8 @@ int main(int argc, char *argv[])
     struct sockaddr_in serv_addr; 
     int bytes_received = 0, result = 0, number_of_lines = 0;
     char recvBuff[MAXDATASIZE];
-
+    int return_value;
+    
     if(argc != 2)
     {
         printf("\n Usage: %s <path for tracefile> \n",argv[0]);
@@ -65,7 +69,9 @@ int main(int argc, char *argv[])
     {
         if(feof(fp))
             break;
-        command_parser(&input,fp);
+        return_value = command_parser(&input,fp);
+        if(return_value)
+            break;
         
         listenfd[number_of_lines] = socket(AF_INET, SOCK_STREAM, 0);
         maxfd = max(maxfd, listenfd[number_of_lines]);

@@ -19,15 +19,17 @@ typedef struct{
     int file_size;
 }trace_file;
 
-void command_parser(trace_file *input, FILE *fp) {
+int command_parser(trace_file *input, FILE *fp) {
     
     char buf[MAXDATASIZE];
     char *start_ptr, *tab_ptr;
     int count = 0;
     char *comp, comp1;
     
+    if(fgets(buf,80,fp) == NULL)
+        return 1;
     printf("\nReading from the file.\n");
-    fgets(buf,80,fp);
+    
     tab_ptr = buf;
     do {
         start_ptr = tab_ptr;
@@ -60,6 +62,7 @@ void command_parser(trace_file *input, FILE *fp) {
         }
         count++;
     } while(tab_ptr != NULL);    
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -67,8 +70,7 @@ int main(int argc, char *argv[]) {
     FILE *fp;
     struct sockaddr_in sender_addr;
     int bytes_to_write = 0, bytes_written = 0, remaining_bytes = 0;
-    
-    int sockfd = 0;
+    int sockfd = 0, return_value = 0;
     char recvBuff[MAXDATASIZE];
     
     if(argc != 2)
@@ -86,7 +88,9 @@ int main(int argc, char *argv[]) {
     {
         if(feof(fp))
             break;
-        command_parser(&input,fp);
+        return_value = command_parser(&input,fp);
+        if(return_value)
+            break;
                 
         memset(recvBuff, '0',sizeof(recvBuff));
         if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
