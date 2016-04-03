@@ -64,6 +64,13 @@ int command_parser(trace_file *input, FILE *fp) {
     } while(tab_ptr != NULL);    
     return 0;
 }
+void populate_buffer(char *buffer) {
+    int count = 0;
+    
+    for(count = 0; count < MAXDATASIZE; count++) {
+        buffer[count] = 'A' + (rand() % 26);
+    }
+}
 
 int main(int argc, char *argv[]) {
     trace_file input;
@@ -71,7 +78,7 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in sender_addr;
     int bytes_to_write = 0, bytes_written = 0, remaining_bytes = 0;
     int sockfd = 0, return_value = 0;
-    char recvBuff[MAXDATASIZE];
+    char *recvBuff;
     
     if(argc != 2)
     {
@@ -91,8 +98,7 @@ int main(int argc, char *argv[]) {
         return_value = command_parser(&input,fp);
         if(return_value)
             break;
-                
-        memset(recvBuff, '0',sizeof(recvBuff));
+        
         if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             printf("\n Error : Could not create socket \n");
@@ -115,8 +121,9 @@ int main(int argc, char *argv[]) {
            printf("\n Error : Connect Failed \n");
            return 1;
         }
-
-        snprintf(recvBuff, sizeof(recvBuff), "Hello World!!\n");
+        
+        recvBuff = (char *)malloc(MAXDATASIZE * sizeof(char));
+        populate_buffer(recvBuff);
         remaining_bytes = input.file_size;
         
         while(remaining_bytes > 0) {
