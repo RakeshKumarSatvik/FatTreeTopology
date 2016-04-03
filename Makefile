@@ -1,7 +1,7 @@
 all: sender receiver
 
 sender: sender.o
-	gcc -o sender.exe -g sender.o
+	gcc -o sender.exe -g sender.o -lpthread
 
 receiver: receiver.o
 	gcc -o receiver.exe -g receiver.o

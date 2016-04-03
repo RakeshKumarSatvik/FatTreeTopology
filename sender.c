@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <math.h>
+#include <pthread.h>
 
 #define MAXDATASIZE 1500
 #define min(a, b) (((a) < (b)) ? (a) : (b))
@@ -72,6 +73,39 @@ void populate_buffer(char *buffer) {
     }
 }
 
+void hedera_controller_thread() {
+    int listenfd = 0, connfd = 0;
+    struct sockaddr_in receiver_addr; 
+    char destination_ip[20] = "20.0.0.100";
+    char recvBuff[1025];
+    
+    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    memset(&receiver_addr, '0', sizeof(receiver_addr));
+    memset(recvBuff, '0', sizeof(recvBuff)); 
+
+    receiver_addr.sin_family = AF_INET;
+    receiver_addr.sin_port = htons(5000); 
+
+    if(inet_pton(AF_INET, destination_ip, &receiver_addr.sin_addr)<=0)
+    {
+        printf("\n inet_pton error occured\n");
+    }
+
+    bind(listenfd, (struct sockaddr*)&receiver_addr, sizeof(receiver_addr)); 
+
+    listen(listenfd, 10); 
+
+    while(1)
+    {
+        connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
+
+        recv(connfd, recvBuff, strlen(recvBuff), 0);
+
+        //close(connfd);
+        //sleep(1);
+     }    
+}
+
 int main(int argc, char *argv[]) {
     trace_file input;
     FILE *fp;
@@ -79,6 +113,13 @@ int main(int argc, char *argv[]) {
     int bytes_to_write = 0, bytes_written = 0, remaining_bytes = 0;
     int sockfd = 0, return_value = 0;
     char *recvBuff;
+    
+    pthread_t hedera_controller_handle;
+    
+    pthread_create(&hedera_controller_handle, 
+                    NULL,
+                    (void *)hedera_controller_thread,
+                    (void *)NULL);
     
     if(argc != 2)
     {
@@ -138,5 +179,6 @@ int main(int argc, char *argv[]) {
             printf("\n Send error, bytes_remaining : %d\n",remaining_bytes);
         } 
     }
+    pthread_join(hedera_controller_handle,0);
     return 0;
 }
