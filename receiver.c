@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     fd_set readset, tempset;
     trace_file input;
     FILE *fp;
-    int listenfd[15], connfd = 0, count = 0, loop = 0, maxfd = 0;
+    int listenfd[25], connfd = 0, count = 0, loop = 0, maxfd = 0;
     struct sockaddr_in serv_addr; 
     int bytes_received = 0, result = 0, number_of_lines = 0;
     char recvBuff[MAXDATASIZE];

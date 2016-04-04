@@ -1,3 +1,5 @@
+In the evaluation.py line number 16, i had to change it to MN_PATH='~mininet/mininet' to make it run in my PC. Not sure if that is needed in other systems as well.
+
 1. Did you use code from anywhere for your project? If not, say so. If so, say what functions and where they are from. (Also identify this with a comment in the
 source code.)
 I have used several online sources for parts of my code, mainly the ones discussed in Piazza. 
@@ -29,6 +31,8 @@ I have created another function in this file called command_parser() as given in
 The receiver basically acts as a server where he creates a socket for the port numbers mentioned in the input file. Once the socketfd is created, he binds it and listens to that particular fd. Since there will be more than one host who tries to send packets to this host, we need to use a select function which helps the selection of sockets to listen to. The logic behind this select operation is basically that there are two sets created, first the set is populated with all the socketfds created. Once the entire input file is read, this set is copied on to a temporary set. Now, select function is made to wait for any activity in any of that temporary set. Once select returns stating that there was some activity, there is a loop which loops for the number of times there were number of ports mentioned in the input file. There is a check to make sure if there was an activity in each of them using FD_ISSET() which tells us that if there was any activity in that. Once we get the fd which is receiving information, we populate it to the first set which has connect fd and is now has the accept fd as well. the next important thing is to clear this fd from the temporary set. So once this is done, we loop around this set which has both socketfd and connfd for receiving information from that particular fd. (There is a memcpy at the beginning which makes sure that both the sets have the same information). This basically helps in reading from multiple sources and port numbers. Sockopt of SO_REUSEPORT is used to reuse the ports.
 
 3. Describe the algorithm you use at the controller.
+Controller acts as client for the hosts as it sends a query for every ten seconds and receives information from the host. In this project all the information received through the host is 'Number of bytes remaining and destination IP'. However, more information will be shared for the next project.
+
 In the controller algorithm, it is basically divided into three categories. Edge, Aggregate and Core switches.
 Edge Switches:
 If the destination corresponds to one of the two hosts connected to the Edge switch then the traffic is transferred to the appropriate port, as we are aware of the port and host connection. If there is any other scenario, then the packets are transferred above with ECMP with equal weight to both the ports.
@@ -39,4 +43,4 @@ If the destination corresponds to one of the four hosts connected to the Edge sw
 Core Switches:
 Once we know the destination in the core switches, we can navigate the traffic to appropriate aggreagete switches. Once the aggregate switch receives information for one of its destined hosts, then the traffic is transferred to the appropriate Edge switch and thereby deliviering it to the end host.
 
-P.S: The input trace and text files need to be in the format as given in the repository, if there is any slight modification it might affect the readability of the code.
+P.S: Conditions when the executable might fail: The input trace and text files need to be in the format as given in the repository, if there is any slight modification it might affect the readability of the code. The limit to number of ports as input in the ports.txt is 25

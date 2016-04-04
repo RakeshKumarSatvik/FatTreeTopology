@@ -26,6 +26,9 @@ typedef struct{
     int file_size;
 }trace_file;
 
+int remaining_bytes = 0;
+char sendBuff_IP[80];
+
 int command_parser(trace_file *input, FILE *fp) {
     
     char buf[MAXDATASIZE];
@@ -87,7 +90,7 @@ void get_flow_state() {
     int optval;
     int listenfd = 0, connfd = 0;
     struct sockaddr_in receiver_addr; 
-    char recvBuff[1024], sendBuff[1024] = "Received information";
+    char recvBuff[1024], sendBuff[1024];
     
     //memset(destination_ip,0,sizeof(char) * 256);
     getifaddrs (&ifap);
@@ -128,6 +131,7 @@ void get_flow_state() {
         
         recv(connfd, recvBuff, strlen(recvBuff), 0);
         
+        sprintf(sendBuff,"Remaining bytes %d for %s",remaining_bytes,sendBuff_IP);
         send(connfd, sendBuff, strlen(sendBuff), 0);
         //close(connfd);
         //sleep(1);
@@ -138,7 +142,7 @@ int main(int argc, char *argv[]) {
     trace_file input;
     FILE *fp;
     struct sockaddr_in sender_addr;
-    int bytes_to_write = 0, bytes_written = 0, remaining_bytes = 0;
+    int bytes_to_write = 0, bytes_written = 0;
     int sockfd = 0, return_value = 0;
     char *recvBuff;
     
@@ -167,6 +171,7 @@ int main(int argc, char *argv[]) {
         return_value = command_parser(&input,fp);
         if(return_value)
             break;
+        strcpy(sendBuff_IP, input.destination_ip);
         
         if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
@@ -205,7 +210,8 @@ int main(int argc, char *argv[]) {
         if(remaining_bytes > 0)
         {
             printf("\n Send error, bytes_remaining : %d\n",remaining_bytes);
-        } 
+        }
+        close(sockfd);
     }
     pthread_join(hedera_controller_handle,0);
     return 0;
