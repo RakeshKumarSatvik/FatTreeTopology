@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     struct sockaddr_in serv_addr; 
     int bytes_received = 0, result = 0, number_of_lines = 0;
     char recvBuff[MAXDATASIZE];
-    int return_value;
+    int return_value, optval;
     
     if(argc != 2)
     {
@@ -84,15 +84,18 @@ int main(int argc, char *argv[])
         serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
         serv_addr.sin_port = htons(input.port_number); 
 
+        optval = 1;
+        setsockopt(listenfd[number_of_lines], SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+    
         bind(listenfd[number_of_lines], (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
 
-        listen(listenfd[number_of_lines], 35); 
+        listen(listenfd[number_of_lines], 200); 
         number_of_lines++;
     }
+    
     while(1)
     {
         memcpy(&tempset,&readset,sizeof(tempset));
-        
         result = select(maxfd + 1, &tempset, NULL, NULL, NULL);
         
         if(result <= 0) {
@@ -107,7 +110,7 @@ int main(int argc, char *argv[])
                         FD_SET(connfd, &tempset);
                         maxfd = max(maxfd, connfd);
                     }
-                    FD_CLR(listenfd[count], &tempset);
+                    //FD_CLR(listenfd[count], &tempset);
                 }
             }
         

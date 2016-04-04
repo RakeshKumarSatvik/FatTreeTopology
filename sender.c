@@ -94,11 +94,11 @@ void hedera_controller_thread() {
     bind(listenfd, (struct sockaddr*)&receiver_addr, sizeof(receiver_addr)); 
 
     listen(listenfd, 10); 
-
+    printf("Trying to connect from the sender\n");
     while(1)
     {
         connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
-
+        printf("%d\n",connfd);
         recv(connfd, recvBuff, strlen(recvBuff), 0);
 
         //close(connfd);

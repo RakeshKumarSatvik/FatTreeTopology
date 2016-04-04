@@ -10,7 +10,8 @@ import time
 class Controller(app_manager.RyuApp):
     def client(threadname):
         s = socket.socket()         # Create a socket object
-        host = '20.0.0.100'          # Get local machine name
+        #host = "20.0.0.100"          # Get local machine name
+        host = socket.gethostname()
         port = 5000                # Reserve a port for your service.
         flag = 1
         while flag == 1:
@@ -21,7 +22,7 @@ class Controller(app_manager.RyuApp):
                 time.sleep(10)
                 print 'Read information'
             except:
-                #print 'Trying to Connect'
+                # print 'Trying to Connect',host
                 flag = 1
 
     def __init__(self):

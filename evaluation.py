@@ -13,7 +13,7 @@ NUM_HOSTS=16
 DEFAULT_WAIT_TIME=3
 TRACE='./traffic'
 
-MN_PATH='~/mininet'
+MN_PATH='~mininet/mininet'
 MN_UTIL=os.path.join(MN_PATH, 'util', 'm')
 
 CmdTcpDump = {
@@ -140,8 +140,8 @@ def ConnectionBytes(src, dst, port, pcap):
         lastPacketTime = dateParser.parse(os.popen(cmd).read())
     except Exception as e:
         return (0, None, None)
-
-
+    
+    if byteCount == '': byteCount = 0
     return (int(byteCount), firstPacketTime, lastPacketTime)
 
 def AnalyzeDump(hosts, trace):
@@ -202,8 +202,9 @@ def RunExperiment(hosts, trace, wait=DEFAULT_WAIT_TIME):
     MakeDumpDirectories()
 
     print "> Starting the hosts."
-    ForAll(lambda h: h.startReceiver(trace), hosts)
     ForAll(lambda h: h.startTcpDump(trace), hosts)
+    time.sleep(2)
+    ForAll(lambda h: h.startReceiver(trace), hosts)
     ForAll(lambda h: h.startSender(trace), hosts)
 
     print "Waiting for the experiment to finish."
