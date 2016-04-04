@@ -1,3 +1,4 @@
+# I have referred this website for sockets basic in python http://www.tutorialspoint.com/python/python_networking.htm
 from ryu.base import app_manager
 from ryu.controller import ofp_event, dpset
 from ryu.controller.handler import MAIN_DISPATCHER
@@ -9,19 +10,19 @@ import time
 
 class Controller(app_manager.RyuApp):
     def client(self):
-        s = socket.socket()         # Create a socket object
         hostall = ["20.0.0.%d" % x for x in range(1,17)]
         #host = socket.gethostname()
         port = 5000                # Reserve a port for your service.
         flag = 1
         while (1):
+            s = socket.socket()         # Create a socket object
             time.sleep(10)
             for host in hostall:
                 try:
                     s.connect((host, port))
                 except:
                     if flag==1:
-                        print 'Trying to Connect'+ host
+                        print 'Trying to Connect '+ host
                         flag=0;
                     break;
                 flag=1;

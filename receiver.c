@@ -1,3 +1,9 @@
+/*I have referred from the following websites for this part of the code
+http://www.thegeekstuff.com/2011/12/c-socket-programming/
+http://stackoverflow.com/questions/4139405/how-can-i-get-to-know-the-ip-address-for-interfaces-in-c
+http://developerweb.net/viewtopic.php?id=2933
+*/
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

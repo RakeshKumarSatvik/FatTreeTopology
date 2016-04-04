@@ -1,40 +1,40 @@
-(a) How many VLANs do you have in your entire network? Whats the minimum number of VLANs you need? Why?
-I have a total of 240 VLANs in my network. Every combination of a source and host is mapped to a VLAN. This helps me to determine what action needs to be taken at any given switch location in the topology depending on my VLAN ID. For example, if k = 4 and I am at Aggregate2 switch (zero indexed),and if I have a VLAN ID of 1004(h1 to h4). I can decide the next port I am supposed to send the packet to depending on the topology. The minimum number of VLANs that are needed is the number of VLANs using which you can communicate between the source and destination hosts within the topology.
+1. Did you use code from anywhere for your project? If not, say so. If so, say what functions and where they are from. (Also identify this with a comment in the
+source code.)
+I have used several online sources for parts of my code, mainly the ones discussed in Piazza. 
+In sender.c
+-> I used this link to get the ip address: http://stackoverflow.com/questions/4139405/how-can-i-get-to-know-the-ip-address-for-interfaces-in-c
+-> For the basic sending and receiving purposes of a socket, I used this as my reference http://www.thegeekstuff.com/2011/12/c-socket-programming/
 
-(b) Show the switch FIB table for a core, aggregator, and ToR switch. Then explain and describe how you planned to setup the FIB table, and how your routing works.
-Current state Information for a ToR switch is as below:
- cookie=0x0, duration=14.892s, table=0, n_packets=0, n_bytes=0, idle_age=14, priority=100,in_port=2,dl_vlan=5 actions=output:3
- cookie=0x0, duration=14.888s, table=0, n_packets=0, n_bytes=0, idle_age=14, priority=1000,in_port=4,dl_vlan=3001 actions=output:2
+In receiver.c
+-> I used this link to get the ip address: http://stackoverflow.com/questions/4139405/how-can-i-get-to-know-the-ip-address-for-interfaces-in-c
+-> For the basic sending and receiving purposes of a socket, I used this as my reference http://www.thegeekstuff.com/2011/12/c-socket-programming/
+-> I used this website to understand how to use the select() function, http://developerweb.net/viewtopic.php?id=2933
 
-Current state Information for an aggregator switch is as below:
- cookie=0x0, duration=89.672s, table=0, n_packets=0, n_bytes=0, idle_age=89, priority=1000,in_port=4,dl_vlan=1002 actions=output:1
- cookie=0x0, duration=89.672s, table=0, n_packets=0, n_bytes=0, idle_age=89, priority=1000,in_port=4,dl_vlan=4003 actions=output:1
+In hedera_controller.py
+-> I used this website to understand socket programming in python, http://www.tutorialspoint.com/python/python_networking.htm
 
-Current state Information for a core switch is as below:
- cookie=0x0, duration=364.179s, table=0, n_packets=0, n_bytes=0, idle_age=364, priority=100,in_port=4,dl_vlan=3009 actions=output:3
- cookie=0x0, duration=364.291s, table=0, n_packets=0, n_bytes=0, idle_age=364, priority=100,in_port=2,dl_vlan=1006 actions=output:2
+The basic max and min function was looked up in the internet. For the purpose of the file read, I have used a part of the code I had used in my previous projects.
+For small transactions and definitions of function, man page was referred as and when required.
 
-Forwarding Table basically needs, the current state, next hop and interface. In our case, if I have reached Core0 switch and I need to go to Aggr2 switch. 
-Current state   Next hop       Interface
-Core0           Aggr2           Port 2
+2. Describe how you implement the sender and receiver at hosts
+Sender:
+In my sender.c:
+I first create a new thread to get the get_flow_state function which acts as a server and is listening to the port for a request from the controller. Once the socket receives request from controller, appropriate measures can be taken as a part of the next part of project.
 
-My FIB table was set as per the requirement where, given a VLAN ID and source IP I must be able send packets between any two hosts within a topology. So keeping this in mind, a rule was developed such that depending on the current state and the VLANID a next hop and its corresponding interface is chosen. Consider a FatTree topology with K = 4.
+After the thread is spawned off, in my main thread I have created another function called command_parser() as given in the requirement which basically reads the information from the file given as input. This file has the informatin regarding the destination IP, port number and number of bytes that is supposed to be sent.Once we have these information we can create a socket and populate it to that information read from the file. Now, depending on the size of transmission requested by the file I populate a random buffer and transmit it through the socket. This is looped over until I transmit it to all the destinations pointed out by the trace file. As and when I reach the EOF for trace file, it exits the loop and waits for the thread that was created initially and the program is exited once the pthread_join() is successful. (In our case the join wont be successful as the get_flow_state() runs forever). Sockopt of SO_REUSEPORT is used to reuse the ports.
 
-Current  interface next hop
-Core0 --(1)----->  Aggr0
-Core0 --(2)----->  Aggr2
-Core0 --(3)----->  Aggr4
-Core0 --(4)----->  Aggr6
+In my receiver.c:
+I have created another function in this file called command_parser() as given in the requirement which basically reads the information from the file given as input. In this input file the information about the port numbers the host is supposed to listen is given. This loops until the end of file so that so sockets are created for each of the port number given by the input file.
 
-Depending on which pod we have to reach from the core switch, we take appropriate aggregate switch and the corresponding interface!
+The receiver basically acts as a server where he creates a socket for the port numbers mentioned in the input file. Once the socketfd is created, he binds it and listens to that particular fd. Since there will be more than one host who tries to send packets to this host, we need to use a select function which helps the selection of sockets to listen to. The logic behind this select operation is basically that there are two sets created, first the set is populated with all the socketfds created. Once the entire input file is read, this set is copied on to a temporary set. Now, select function is made to wait for any activity in any of that temporary set. Once select returns stating that there was some activity, there is a loop which loops for the number of times there were number of ports mentioned in the input file. There is a check to make sure if there was an activity in each of them using FD_ISSET() which tells us that if there was any activity in that. Once we get the fd which is receiving information, we populate it to the first set which has connect fd and is now has the accept fd as well. the next important thing is to clear this fd from the temporary set. So once this is done, we loop around this set which has both socketfd and connfd for receiving information from that particular fd. (There is a memcpy at the beginning which makes sure that both the sets have the same information). This basically helps in reading from multiple sources and port numbers. Sockopt of SO_REUSEPORT is used to reuse the ports.
 
-(c) For a k=8 FatTree, how many hosts would we have? How many switches do we
-have? How many paths between a pair of hosts? How many VLANs do we need?
+3. Describe the algorithm you use at the controller.
+In the controller algorithm, it is basically divided into three categories. Edge, Aggregate and Core switches.
+Edge Switches:
+If the destination corresponds to one of the two hosts connected to the Edge switch then the traffic is transferred to the appropriate port, as we are aware of the port and host connection. If there is any other scenario, then the packets are transferred above with ECMP with equal weight to both the ports.
 
-There are (k/2)^2 hosts in each pod and there are k pods. So a total 128 hosts.
-There are a total of 80 switches.
-16 paths between a pair of hosts.
-A total of 16256 VLANS.
+Aggregate Switches:
+If the destination corresponds to one of the four hosts connected to the Edge switch then the traffic is transferred to the appropriate port, as we are aware of the port and host connection. If there is any other scenario, then the packets are transferred above with ECMP with equal weight to both the ports.
 
-
-Note: I am able to check the tcpdump and verify the output, but the ping.py script does not seem to be working. Tried on fixing for a long time but for no luck. The topology.py is written for a generic case whereas controller was skewed trying to get fixed for the script issues.
+Core Switches:
+Once we know the destination in the core switches, we can navigate the traffic to appropriate aggreagete switches. Once the aggregate switch receives information for one of its destined hosts, then the traffic is transferred to the appropriate Edge switch and thereby deliviering it to the end host.

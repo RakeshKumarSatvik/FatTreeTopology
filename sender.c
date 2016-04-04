@@ -1,3 +1,8 @@
+/*I have referred from the following websites for this part of the code
+http://www.thegeekstuff.com/2011/12/c-socket-programming/
+http://stackoverflow.com/questions/4139405/how-can-i-get-to-know-the-ip-address-for-interfaces-in-c
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -74,7 +79,7 @@ void populate_buffer(char *buffer) {
     }
 }
 
-void hedera_controller_thread() {
+void get_flow_state() {
     struct ifaddrs *ifap, *ifa;
     struct sockaddr_in *sa;
     char *addr;
@@ -141,7 +146,7 @@ int main(int argc, char *argv[]) {
     
     pthread_create(&hedera_controller_handle, 
                     NULL,
-                    (void *)hedera_controller_thread,
+                    (void *)get_flow_state,
                     (void *)NULL);
     
     if(argc != 2)
