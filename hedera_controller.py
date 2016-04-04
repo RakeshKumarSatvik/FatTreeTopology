@@ -5,6 +5,7 @@ from ryu.controller.handler import set_ev_cls
 from ryu.lib.ip import ipv4_to_bin
 import socket
 from threading import Thread
+import time
 
 class Controller(app_manager.RyuApp):
     def client(threadname):
@@ -17,6 +18,7 @@ class Controller(app_manager.RyuApp):
                 s.connect((host, port))
                 s.send('1024')
                 s.close                     # Close the socket when done
+                time.sleep(10)
                 print 'Read information'
             except:
                 #print 'Trying to Connect'
