@@ -10,8 +10,8 @@ import time
 class Controller(app_manager.RyuApp):
     def client(threadname):
         s = socket.socket()         # Create a socket object
-        host = '127.0.0.1'          # Get local machine name
-        port = 6000                # Reserve a port for your service.
+        host = '20.0.0.100'          # Get local machine name
+        port = 5000                # Reserve a port for your service.
         flag = 1
         while flag == 1:
             try:

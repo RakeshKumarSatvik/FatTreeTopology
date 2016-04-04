@@ -76,7 +76,7 @@ void populate_buffer(char *buffer) {
 void hedera_controller_thread() {
     int listenfd = 0, connfd = 0;
     struct sockaddr_in receiver_addr; 
-    char destination_ip[20] = "127.0.0.1";
+    char destination_ip[20] = "20.0.0.100";
     char recvBuff[1025];
     
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -84,7 +84,7 @@ void hedera_controller_thread() {
     memset(recvBuff, '0', sizeof(recvBuff)); 
 
     receiver_addr.sin_family = AF_INET;
-    receiver_addr.sin_port = htons(6000); 
+    receiver_addr.sin_port = htons(5000); 
 
     if(inet_pton(AF_INET, destination_ip, &receiver_addr.sin_addr)<=0)
     {
