@@ -107,10 +107,10 @@ int main(int argc, char *argv[])
                     if(connfd < 0) {
                         printf("Error in accept\n");
                     } else {
-                        FD_SET(connfd, &tempset);
+                        FD_SET(connfd, &readset);
                         maxfd = max(maxfd, connfd);
                     }
-                    //FD_CLR(listenfd[count], &tempset);
+                    FD_CLR(listenfd[count], &tempset);
                 }
             }
         
@@ -121,10 +121,10 @@ int main(int argc, char *argv[])
                         //printf("bytes :%d\n",bytes_received);
                     }while(bytes_received == -1 && errno == EINTR);
                     
-                    if(fputs(recvBuff, stdout) == EOF)
-                    {
-                        printf("\n Error : Fputs error\n");
-                    }
+                    // if(fputs(recvBuff, stdout) == EOF)
+                    // {
+                        // printf("\n Error : Fputs error\n");
+                    // }
                 }
             }
         }
