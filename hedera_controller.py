@@ -8,22 +8,31 @@ from threading import Thread
 import time
 
 class Controller(app_manager.RyuApp):
-    def client(threadname):
+    def client(self):
         s = socket.socket()         # Create a socket object
-        #host = "20.0.0.100"          # Get local machine name
-        host = socket.gethostname()
+        hostall = ["20.0.0.%d" % x for x in range(1,17)]
+        #host = socket.gethostname()
         port = 5000                # Reserve a port for your service.
         flag = 1
-        while flag == 1:
-            try:
-                s.connect((host, port))
-                s.send('1024')
-                s.close                     # Close the socket when done
-                time.sleep(10)
-                print 'Read information'
-            except:
-                # print 'Trying to Connect',host
-                flag = 1
+        while (1):
+            time.sleep(10)
+            for host in hostall:
+                try:
+                    s.connect((host, port))
+                except:
+                    if flag==1:
+                        print 'Trying to Connect'+ host
+                        flag=0;
+                    break;
+                flag=1;
+                try:     
+                    s.send("sending")
+                    s.close# Close the socket when done
+                    print 'Read information from ' + host
+                except:
+                    print 'send failed '+host           
+        client.exit();
+                    
 
     def __init__(self):
         super(Controller, self).__init__()

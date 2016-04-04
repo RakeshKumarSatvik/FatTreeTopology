@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include <math.h>
 #include <pthread.h>
+#include <ifaddrs.h>
 
 #define MAXDATASIZE 1500
 #define min(a, b) (((a) < (b)) ? (a) : (b))
@@ -74,10 +75,27 @@ void populate_buffer(char *buffer) {
 }
 
 void hedera_controller_thread() {
+    struct ifaddrs *ifap, *ifa;
+    struct sockaddr_in *sa;
+    char *addr;
+    char *destination_ip = NULL;
+    int optval;
     int listenfd = 0, connfd = 0;
     struct sockaddr_in receiver_addr; 
-    char destination_ip[20] = "20.0.0.100";
     char recvBuff[1025];
+    
+    //memset(destination_ip,0,sizeof(char) * 256);
+    getifaddrs (&ifap);
+    for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr->sa_family==AF_INET) {
+            sa = (struct sockaddr_in *) ifa->ifa_addr;
+            addr = inet_ntoa(sa->sin_addr);
+            if(addr[0]=='2'){
+                destination_ip = inet_ntoa(sa->sin_addr);
+            }
+        }
+    }
+    freeifaddrs(ifap);
     
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&receiver_addr, '0', sizeof(receiver_addr));
@@ -90,17 +108,22 @@ void hedera_controller_thread() {
     {
         printf("\n inet_pton error occured\n");
     }
+    optval = 1;
+    setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 
-    bind(listenfd, (struct sockaddr*)&receiver_addr, sizeof(receiver_addr)); 
+    if(bind(listenfd, (struct sockaddr*)&receiver_addr, sizeof(receiver_addr)) < 0)
+        printf("Sender Bind error\n");
 
-    listen(listenfd, 10); 
+    listen(listenfd, 100); 
     printf("Trying to connect from the sender\n");
     while(1)
     {
-        connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
-        printf("%d\n",connfd);
+        if((connfd = accept(listenfd, (struct sockaddr*)NULL, NULL))<0)
+            continue;
         recv(connfd, recvBuff, strlen(recvBuff), 0);
-
+        if(strcmp(recvBuff,"sending")==0)
+            printf("Reached\n");
+        fflush(stdout);
         //close(connfd);
         //sleep(1);
      }    
