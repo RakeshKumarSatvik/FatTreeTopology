@@ -51,11 +51,11 @@ int command_parser(trace_file *input, FILE *fp) {
                     comp = start_ptr+strlen(start_ptr)-1;
                     strcpy(&comp1,start_ptr+strlen(start_ptr)-2);
                     // printf("comp : %s start_ptr : %s comp1 : %c strcmp : %d ",comp,start_ptr,comp1,strcmp(&comp1,"M"));
-                    if(strcmp(comp,"M") == 0 || strcmp(&comp1,"M") == 1){
+                    if(strcmp(comp,"M") == 0 || strcmp(&comp1,"M") >= 1){
                         input->file_size *= pow(10,6);
-                    } else if(strcmp(comp,"K") == 0 || strcmp(&comp1,"K") == 1) {
+                    } else if(strcmp(comp,"K") == 0 || strcmp(&comp1,"K") >= 1) {
                         input->file_size *= pow(10,3);
-                    } else if(strcmp(comp,"G") == 0 || strcmp(&comp1,"G") == 1) {
+                    } else if(strcmp(comp,"G") == 0 || strcmp(&comp1,"G") >= 1) {
                         input->file_size *= pow(10,9);
                     }
                     printf("File Size : %d\n",input->file_size);
@@ -76,7 +76,7 @@ void populate_buffer(char *buffer) {
 void hedera_controller_thread() {
     int listenfd = 0, connfd = 0;
     struct sockaddr_in receiver_addr; 
-    char destination_ip[20] = "20.0.0.100";
+    char destination_ip[20] = "127.0.0.1";
     char recvBuff[1025];
     
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -84,7 +84,7 @@ void hedera_controller_thread() {
     memset(recvBuff, '0', sizeof(recvBuff)); 
 
     receiver_addr.sin_family = AF_INET;
-    receiver_addr.sin_port = htons(5000); 
+    receiver_addr.sin_port = htons(6000); 
 
     if(inet_pton(AF_INET, destination_ip, &receiver_addr.sin_addr)<=0)
     {

@@ -3,9 +3,30 @@ from ryu.controller import ofp_event, dpset
 from ryu.controller.handler import MAIN_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.lib.ip import ipv4_to_bin
+import socket
+from threading import Thread
 
 class Controller(app_manager.RyuApp):
+    def client(threadname):
+        s = socket.socket()         # Create a socket object
+        host = '127.0.0.1'          # Get local machine name
+        port = 6000                # Reserve a port for your service.
+        flag = 1
+        while flag == 1:
+            try:
+                s.connect((host, port))
+                s.send('1024')
+                s.close                     # Close the socket when done
+                print 'Read information'
+            except:
+                #print 'Trying to Connect'
+                flag = 1
 
+    def __init__(self):
+        super(Controller, self).__init__()
+        thread = Thread(target = self.client)
+        thread.start()
+        
     def prepareSwitch(self, sw):
         hostIp = int(sw.id)
         ofproto = sw.ofproto
