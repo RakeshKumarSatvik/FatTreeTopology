@@ -11,6 +11,7 @@ import time
 class Controller(app_manager.RyuApp):
     def client(self):
         hostall = ["20.0.0.%d" % x for x in range(1,17)]
+        sendBuff = "sending"
         #host = socket.gethostname()
         port = 5000                # Reserve a port for your service.
         flag = 1
@@ -27,8 +28,8 @@ class Controller(app_manager.RyuApp):
                     break;
                 flag=1;
                 try:     
-                    s.send("sending")
-                    print 'Sent information to ' + host
+                    s.send(sendBuff)
+                    print 'Sent query to ' + host
                     print s.recv(1024) + ' from ' + host
                     s.close# Close the socket when done
                 except:

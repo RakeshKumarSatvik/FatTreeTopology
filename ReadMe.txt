@@ -38,3 +38,5 @@ If the destination corresponds to one of the four hosts connected to the Edge sw
 
 Core Switches:
 Once we know the destination in the core switches, we can navigate the traffic to appropriate aggreagete switches. Once the aggregate switch receives information for one of its destined hosts, then the traffic is transferred to the appropriate Edge switch and thereby deliviering it to the end host.
+
+P.S: The input trace and text files need to be in the format as given in the repository, if there is any slight modification it might affect the readability of the code.

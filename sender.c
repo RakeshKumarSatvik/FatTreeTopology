@@ -128,7 +128,6 @@ void get_flow_state() {
         
         recv(connfd, recvBuff, strlen(recvBuff), 0);
         
-        // if(strcmp(recvBuff,"sending")==0)
         send(connfd, sendBuff, strlen(sendBuff), 0);
         //close(connfd);
         //sleep(1);
