@@ -15,9 +15,9 @@ class Controller(app_manager.RyuApp):
         port = 5000                # Reserve a port for your service.
         flag = 1
         while (1):
-            s = socket.socket()         # Create a socket object
             time.sleep(10)
             for host in hostall:
+                s = socket.socket()         # Create a socket object
                 try:
                     s.connect((host, port))
                 except:
@@ -28,8 +28,9 @@ class Controller(app_manager.RyuApp):
                 flag=1;
                 try:     
                     s.send("sending")
+                    print 'Sent information to ' + host
+                    print s.recv(1024) + ' from ' + host
                     s.close# Close the socket when done
-                    print 'Read information from ' + host
                 except:
                     print 'send failed '+host           
         client.exit();

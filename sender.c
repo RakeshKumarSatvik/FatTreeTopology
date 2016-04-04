@@ -87,7 +87,7 @@ void get_flow_state() {
     int optval;
     int listenfd = 0, connfd = 0;
     struct sockaddr_in receiver_addr; 
-    char recvBuff[1025];
+    char recvBuff[1024], sendBuff[1024] = "Received information";
     
     //memset(destination_ip,0,sizeof(char) * 256);
     getifaddrs (&ifap);
@@ -120,15 +120,16 @@ void get_flow_state() {
         printf("Sender Bind error\n");
 
     listen(listenfd, 100); 
-    printf("Trying to connect from the sender\n");
+    
     while(1)
     {
         if((connfd = accept(listenfd, (struct sockaddr*)NULL, NULL))<0)
             continue;
+        
         recv(connfd, recvBuff, strlen(recvBuff), 0);
-        if(strcmp(recvBuff,"sending")==0)
-            printf("Reached\n");
-        fflush(stdout);
+        
+        // if(strcmp(recvBuff,"sending")==0)
+        send(connfd, sendBuff, strlen(sendBuff), 0);
         //close(connfd);
         //sleep(1);
      }    
