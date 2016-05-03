@@ -11,6 +11,8 @@ import re
 msleep = lambda x: time.sleep(x/1000.0)
 
 g_switch = []
+
+topo_link = {}
 topo_link = {"e%da%d" %(x,x) : 0 for x in range(0,8)}
 z = {"e%da%d" %(x,x+1) : 0 for x in range(0,8,2)}
 topo_link.update(z)
@@ -25,19 +27,76 @@ topo_link.update(z)
 z = {"a%dc%d" %(x,3) : 0 for x in range(1,8,2)}
 topo_link.update(z)
 
-{
-    if (source % 4 < 3 and source / 4 != 1):
-        #min(e0a0,e0a1)
-        min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))], topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)])
-        #min(a0c0,a0c1,a1c2,a1c3)
-        min(topo_link["a%dc%d"%((source - 1)/2, 0)], topo_link["a%dc%d"%((source - 1)/2, 1)], topo_link["a%dc%d"%(((source - 1)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 1)/2) + 1, 3)])
-    else:
-        #min(e0a0,e0a1)
-        min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)], topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)])
-        #min(a0c0,a0c1,a1c2,a1c3)
-        min(topo_link["a%dc%d"%((source - 3)/2, 0)], topo_link["a%dc%d"%((source - 3)/2, 1)], topo_link["a%dc%d"%(((source - 3)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 3)/2) + 1, 3)])
-}
 class Controller(app_manager.RyuApp):
+    def path_population(self, source):
+        global topo_link
+        path_chosen = 'nothing'
+        if (source % 4 < 3 and source / 4 != 1):
+            #e0a0->a0c0 or e0a0->a0c1
+            straight_one = topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))] + topo_link["a%dc%d"%((source - 1)/2, 0)]
+            straight_two = topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))] + topo_link["a%dc%d"%((source - 1)/2, 1)]
+            
+            #e0a1->a1c2 or e0a1->a1c3
+            cross_one = topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)] + topo_link["a%dc%d"%(((source - 1)/2) + 1, 2)]
+            cross_two = topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)] + topo_link["a%dc%d"%(((source - 1)/2) + 1, 3)]
+            
+            value = min(straight_one, straight_two, cross_one, cross_two)
+            
+            if value == straight_one:
+                path_chosen = 'straight_one'
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))] += 1
+                topo_link["a%dc%d"%((source - 1)/2, 0)] += 1
+            elif value == straight_two:
+                path_chosen = 'straight_two'
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))] += 1
+                topo_link["a%dc%d"%((source - 1)/2, 1)] += 1
+            elif value == cross_one:
+                path_chosen = 'cross_one'
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)] += 1
+                topo_link["a%dc%d"%(((source - 1)/2) + 1, 2)] += 1
+            elif value == cross_two:
+                path_chosen = 'cross_two'
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)] +=1
+                topo_link["a%dc%d"%(((source - 1)/2) + 1, 3)] += 1
+            else:
+                print 'Something terribly is wrong'
+            #min(e0a0,e0a1)
+            #min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))], topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)])
+            #min(a0c0,a0c1,a1c2,a1c3)
+            #min(topo_link["a%dc%d"%((source - 1)/2, 0)], topo_link["a%dc%d"%((source - 1)/2, 1)], topo_link["a%dc%d"%(((source - 1)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 1)/2) + 1, 3)])
+        else:
+            #e1a1->a1c2 or e1a1->a1c3
+            straight_one = topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)] + topo_link["a%dc%d"%(((source - 3)/2) + 1, 2)]
+            straight_two = topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)] + topo_link["a%dc%d"%(((source - 3)/2) + 1, 3)]
+            
+            #e1a0->a0c0 or e1a0->a0c1
+            cross_one = topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)] + topo_link["a%dc%d"%((source - 3)/2, 0)]
+            cross_two = topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)] + topo_link["a%dc%d"%((source - 3)/2, 1)]
+            
+            value = min(straight_one, straight_two, cross_one, cross_two)
+            
+            if value == straight_one:
+                path_chosen = 'straight_one'
+                topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)] += 1
+                topo_link["a%dc%d"%(((source - 3)/2) + 1, 2)] += 1
+            elif value == straight_two:
+                path_chosen = 'straight_two'
+                topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)] += 1
+                topo_link["a%dc%d"%(((source - 3)/2) + 1, 3)] += 1
+            elif value == cross_one:
+                path_chosen = 'cross_one'
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)] +=1
+                topo_link["a%dc%d"%((source - 3)/2, 0)] += 1
+            elif value == cross_two:
+                path_chosen = 'cross_two'
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)] += 1
+                topo_link["a%dc%d"%((source - 3)/2, 1)] += 1
+            #min(e1a0,e1a1)
+            #min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)], topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)])
+            #min(a0c0,a0c1,a1c2,a1c3)
+            #min(topo_link["a%dc%d"%((source - 3)/2, 0)], topo_link["a%dc%d"%((source - 3)/2, 1)], topo_link["a%dc%d"%(((source - 3)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 3)/2) + 1, 3)])
+        return path_chosen
+
     def client(self):
         global g_switch
         hostall = ["20.0.0.%d" % x for x in range(1,17)]
@@ -67,6 +126,8 @@ class Controller(app_manager.RyuApp):
                     if int(find_text[0]) > 10000:
                         destination = int(find_text[4])
                         source = int(find_host[3])
+                        path_chosen = self.path_population(source)
+                        print path_chosen
                         print  source, ' to ', destination
                         print 'Sent query to ' + host
                         print 'Elephant flow ' + find_text[0]
