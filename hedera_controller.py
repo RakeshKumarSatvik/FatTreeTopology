@@ -11,6 +11,19 @@ import re
 msleep = lambda x: time.sleep(x/1000.0)
 
 g_switch = []
+topo_link = {"e%da%d" %(x,x) : 0 for x in range(0,8)}
+z = {"e%da%d" %(x,x+1) : 0 for x in range(0,8,2)}
+topo_link.update(z)
+z = {"e%da%d" %(x,x-1) : 0 for x in range(1,8,2)}
+topo_link.update(z)
+z = {"a%dc%d" %(x,x%2) : 0 for x in range(0,8,2)}
+topo_link.update(z)
+z = {"a%dc%d" %(x,(x%2)+1) : 0 for x in range(0,8,2)}
+topo_link.update(z)
+z = {"a%dc%d" %(x,2) : 0 for x in range(1,8,2)}
+topo_link.update(z)
+z = {"a%dc%d" %(x,3) : 0 for x in range(1,8,2)}
+topo_link.update(z)
 
 class Controller(app_manager.RyuApp):
     def client(self):
@@ -38,19 +51,18 @@ class Controller(app_manager.RyuApp):
                     text += s.recv(1024)
                     find_text = re.findall(r'\d+',text)
                     find_host = re.findall(r'\d+',host)
+                    #print text + ' from ' + host
                     if int(find_text[0]) > 10000:
-                        source = 0
                         destination = int(find_text[4])
                         source = int(find_host[3])
                         print  source, ' to ', destination
-                        #print 'Sent query to ' + host
+                        print 'Sent query to ' + host
                         print 'Elephant flow ' + find_text[0]
-                        print text + ' from ' + host
                     s.close# Close the socket when done
                 except:
                     print 'send failed '+host
                     dummy = 1
-            msleep(1000)
+            msleep(10)
         client.exit();
 
     def __init__(self):
