@@ -25,6 +25,18 @@ topo_link.update(z)
 z = {"a%dc%d" %(x,3) : 0 for x in range(1,8,2)}
 topo_link.update(z)
 
+{
+    if (source % 4 < 3 and source / 4 != 1):
+        #min(e0a0,e0a1)
+        min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))], topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)])
+        #min(a0c0,a0c1,a1c2,a1c3)
+        min(topo_link["a%dc%d"%((source - 1)/2, 0)], topo_link["a%dc%d"%((source - 1)/2, 1)], topo_link["a%dc%d"%(((source - 1)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 1)/2) + 1, 3)])
+    else:
+        #min(e0a0,e0a1)
+        min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)], topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)])
+        #min(a0c0,a0c1,a1c2,a1c3)
+        min(topo_link["a%dc%d"%((source - 3)/2, 0)], topo_link["a%dc%d"%((source - 3)/2, 1)], topo_link["a%dc%d"%(((source - 3)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 3)/2) + 1, 3)])
+}
 class Controller(app_manager.RyuApp):
     def client(self):
         global g_switch
