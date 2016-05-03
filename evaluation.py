@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import collections
 from collections import defaultdict
 from dateutil.parser import parser
@@ -11,9 +12,13 @@ import sys
 
 NUM_HOSTS=16
 DEFAULT_WAIT_TIME=3
-TRACE='./traffic'
 
-MN_PATH='~mininet/mininet'
+argparser = argparse.ArgumentParser(description='Process some integers.')
+argparser.add_argument('traffic', type=str, help='Path to the traffic files')
+argparser.add_argument('wait_time', metavar='wait-time', type=float, help='Time to wait for the experiment to finish')
+ARGS = argparser.parse_args()
+
+MN_PATH='~/mininet'
 MN_UTIL=os.path.join(MN_PATH, 'util', 'm')
 
 CmdTcpDump = {
@@ -22,12 +27,12 @@ CmdTcpDump = {
 }
 
 CmdSender = {
-    'start': './sender {traffic}/{host}.trace > logs/sender-{host}.log 2>&1 &',
+    'start': './sender {traffic}/{host}.trace >logs/{host}-sender.log  2>&1 &',
     'kill': 'sudo killall sender 2>/dev/null'
 }
 
 CmdReceiver = {
-    'start': './receiver {traffic}/port.txt > logs/receiver-{host}.log 2>&1 &',
+    'start': './receiver {traffic}/port.txt >logs/{host}-receiver.log  2>&1 &',
     'kill': 'sudo killall receiver 2>/dev/null'
 }
 
@@ -205,6 +210,7 @@ def RunExperiment(hosts, trace, wait=DEFAULT_WAIT_TIME):
     ForAll(lambda h: h.startTcpDump(trace), hosts)
     time.sleep(2)
     ForAll(lambda h: h.startReceiver(trace), hosts)
+    time.sleep(2)
     ForAll(lambda h: h.startSender(trace), hosts)
 
     print "Waiting for the experiment to finish."
@@ -219,12 +225,13 @@ def RunExperiment(hosts, trace, wait=DEFAULT_WAIT_TIME):
 
 if __name__ == '__main__':
     hosts = [Host(x) for x in range(1,NUM_HOSTS+1)]
-    output = RunExperiment(hosts, TRACE)
+    output = RunExperiment(hosts, ARGS.traffic, ARGS.wait_time)
     seconds = (output['end'] - output['start']).total_seconds()
     byteCount = output['bytes']
     incorrect = output['incorrect']
     correct = output['correct']
     totalFlows = correct + incorrect
 
+    print '=== Overall result ==='
     print 'Throughput: %.2f Mbps\n%% of correct flows: %.2f' % \
             ((byteCount*8.0/(seconds*1024.0*1024)), (correct*100.0/totalFlows))

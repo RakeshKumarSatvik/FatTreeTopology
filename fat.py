@@ -25,12 +25,24 @@ class FatTopo(Topo):
             self.hostLinks_ = [
                     self.addLink('h%d' % (eId + 1), 'Edge%d' % (eId / (vertexCount / 2)))
                     for eId in xrange(loop, (((vertexCount/2)**2) * vertexCount), vertexCount / 2)]
-
-        for loop in range(vertexCount/2):
+        
+        #for one to one
+        for loop in range(1):
             self.switchLinks_ = [
-                    self.addLink('Edge%d' % (loop + (eId / (vertexCount / 2)) * (vertexCount / 2)), 'Aggr%d' % eId)
+                    self.addLink('Edge%d' % eId, 'Aggr%d' % eId)
                     for eId in xrange(0, vertexCount * vertexCount / 2, 1)]                
+        #for cross
+        for loop in range(1):
+            self.switchLinks_ = [
+                    self.addLink('Edge%d' % eId, 'Aggr%d' % (eId + 1))
+                    for eId in xrange(0, 7, 2)]                
 
+        #for cross
+        for loop in range(1):
+            self.switchLinks_ = [
+                    self.addLink('Edge%d' % eId, 'Aggr%d' % (eId - 1))
+                    for eId in xrange(1, 8, 2)]                
+                    
         self.switchLinks_ = [
                 self.addLink('Core%d' % (eId % ((vertexCount/2)**2)), 'Aggr%d' % (eId / (vertexCount / 2)))
                 for eId in xrange(0, ((vertexCount/2)**2) * vertexCount, 1)]                

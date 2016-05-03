@@ -9,6 +9,7 @@ import mininet
 from optparse import OptionParser
 import os, sys
 import subprocess
+import time
 
 CONTROLLER_IP="20.0.0.100/32"
 

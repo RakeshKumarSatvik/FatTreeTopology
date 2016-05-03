@@ -17,7 +17,7 @@ http://stackoverflow.com/questions/4139405/how-can-i-get-to-know-the-ip-address-
 #include <pthread.h>
 #include <ifaddrs.h>
 
-#define MAXDATASIZE 1500
+#define MAXDATASIZE 65536
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
 typedef struct{
@@ -131,7 +131,7 @@ void get_flow_state() {
         
         recv(connfd, recvBuff, strlen(recvBuff), 0);
         
-        sprintf(sendBuff,"Remaining bytes %d for %s",remaining_bytes,sendBuff_IP);
+        sprintf(sendBuff,"Remaining bytes %d to %s",remaining_bytes,sendBuff_IP);
         send(connfd, sendBuff, strlen(sendBuff), 0);
         //close(connfd);
         //sleep(1);
