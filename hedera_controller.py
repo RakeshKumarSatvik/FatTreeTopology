@@ -1,7 +1,4 @@
 # I have referred this website for sockets basic in python http://www.tutorialspoint.com/python/python_networking.htm
-
-#Add flow id on sender side, so that we can check for the flow uniquely here and make sure rules are not added multiple times!
-
 from ryu.base import app_manager
 from ryu.controller import ofp_event, dpset
 from ryu.controller.handler import MAIN_DISPATCHER
@@ -34,7 +31,7 @@ class Controller(app_manager.RyuApp):
     def path_population(self, source):
         global topo_link
         path_chosen = 'nothing'
-        if (source % 4 < 3 and source / 4 != 1):
+        if (source % 4 < 3 and source % 4 != 0):
             #e0a0->a0c0 or e0a0->a0c1
             straight_one = topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))] + topo_link["a%dc%d"%((source - 1)/2, 0)]
             straight_two = topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))] + topo_link["a%dc%d"%((source - 1)/2, 1)]
@@ -182,7 +179,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=15,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -192,7 +189,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=15,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -203,7 +200,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=15,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -213,7 +210,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=15,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -237,6 +234,8 @@ class Controller(app_manager.RyuApp):
         #host = socket.gethostname()
         port = 5000                # Reserve a port for your service.
         flag = 1
+        unique = {}
+        count = 0
         while (1):
             for host in hostall:
                 s = socket.socket()         # Create a socket object
@@ -258,23 +257,34 @@ class Controller(app_manager.RyuApp):
 
                 find_text = re.findall(r'\d+',text)
                 find_host = re.findall(r'\d+',host)
-                #print text + ' from ' + host
                 if find_text == []:
                     continue
-                if int(find_text[0]) > 10000:
+                if find_host == []:
+                    continue
+                
+                if len(find_text) == 6:
                     destination = int(find_text[4])
                     source = int(find_host[3])
-                    path_chosen = self.path_population(source)
-                    switches_changed = self.modify_path(path_chosen, source)
-                    final = self.add_rules(switches_changed, destination, path_chosen)
+                    flow_id = source * 100 + int(find_text[5])
                     
-                    #print path_chosen, switches_changed
-                    #print  source, ' to ', destination
-                    #print 'Sent query to ' + host
-                    print 'Elephant flow ' + find_text[0] + ' from ' + host
-                s.close# Close the socket when done
-
-            msleep(10)
+                    if not unique.has_key(flow_id):
+                        unique[flow_id] = 0
+                    # if count == 100:
+                        # count = 0
+                        # unique = unique.fromkeys(unique, 0)
+                    
+                    if int(find_text[0]) > 65536 and unique[flow_id] == 0:
+                        path_chosen = self.path_population(source)
+                        switches_changed = self.modify_path(path_chosen, source)
+                        final = self.add_rules(switches_changed, destination, path_chosen)
+                        unique[flow_id] = 1
+                        #print path_chosen, switches_changed
+                        #print  source, ' to ', destination
+                        #print 'Sent query to ' + host
+                        print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination
+                    s.close# Close the socket when done
+            msleep(100)
+            count += 1
         client.exit();
 
     def __init__(self):

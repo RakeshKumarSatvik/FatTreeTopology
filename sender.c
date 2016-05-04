@@ -28,6 +28,7 @@ typedef struct{
 
 int remaining_bytes = 0;
 char sendBuff_IP[80];
+int flow_id;
 
 int command_parser(trace_file *input, FILE *fp) {
     
@@ -131,7 +132,7 @@ void get_flow_state() {
         
         recv(connfd, recvBuff, strlen(recvBuff), 0);
         
-        sprintf(sendBuff,"Remaining bytes %d to %s",remaining_bytes,sendBuff_IP);
+        sprintf(sendBuff,"Remaining bytes %d to %s and flow_id %d",remaining_bytes, sendBuff_IP, flow_id);
         send(connfd, sendBuff, strlen(sendBuff), 0);
         //close(connfd);
         //sleep(1);
@@ -172,7 +173,7 @@ int main(int argc, char *argv[]) {
         if(return_value)
             break;
         strcpy(sendBuff_IP, input.destination_ip);
-        
+        flow_id++;
         if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             printf("\n Error : Could not create socket \n");
