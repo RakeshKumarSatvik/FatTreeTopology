@@ -1,4 +1,7 @@
 # I have referred this website for sockets basic in python http://www.tutorialspoint.com/python/python_networking.htm
+
+#Add flow id on sender side, so that we can check for the flow uniquely here and make sure rules are not added multiple times!
+
 from ryu.base import app_manager
 from ryu.controller import ofp_event, dpset
 from ryu.controller.handler import MAIN_DISPATCHER
@@ -98,7 +101,6 @@ class Controller(app_manager.RyuApp):
         return path_chosen
 
     def modify_path(self, path_chosen, source):
-        global g_switch
         if path_chosen == 'straight_one':
             if (source % 4 < 3 and source / 4 != 1):
                 if source % 2 == 1:
@@ -162,7 +164,72 @@ class Controller(app_manager.RyuApp):
         else:
             print 'Something terribly is wrong'
         return switches_changed
-
+    
+    def add_rules(self, switches_changed, dest, path_chosen):
+        global g_switch
+        for id in switches_changed:
+            for sw in g_switch:
+                if sw.id != id:
+                    continue
+                ofproto = sw.ofproto
+                ofp_parser = sw.ofproto_parser
+                ofp = ofproto
+                
+                if(id < 9):
+                    if path_chosen == 'straight_one' or path_chosen == 'straight_two':
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(3)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                        mod = sw.ofproto_parser.OFPFlowMod(
+                                datapath=sw, match=match, cookie=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                priority=1100,
+                                flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                        sw.send_msg(mod)
+                    elif path_chosen == 'cross_one' or path_chosen == 'cross_two':
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(4)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                        mod = sw.ofproto_parser.OFPFlowMod(
+                                datapath=sw, match=match, cookie=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                priority=1100,
+                                flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                        sw.send_msg(mod)
+                elif id < 17:
+                    if path_chosen == 'straight_one' or path_chosen == 'cross_one':
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(3)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                        mod = sw.ofproto_parser.OFPFlowMod(
+                                datapath=sw, match=match, cookie=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                priority=1100,
+                                flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                        sw.send_msg(mod)
+                    elif path_chosen == 'straight_two' or path_chosen == 'cross_two':
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        action = sw.ofproto_parser.OFPActionOutput(4)
+                        inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                        mod = sw.ofproto_parser.OFPFlowMod(
+                                datapath=sw, match=match, cookie=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                priority=1100,
+                                flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                        sw.send_msg(mod)
+                elif id < 21:
+                    dummy = None
+                    # match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                    # action = sw.ofproto_parser.OFPActionOutput(1)
+                    # inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
+                    # mod = sw.ofproto_parser.OFPFlowMod(
+                            # datapath=sw, match=match, cookie=0,
+                            # command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                            # priority=1100,
+                            # flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
+                    # sw.send_msg(mod)            
+        return 1
+        
     def client(self):
         global g_switch
         hostall = ["20.0.0.%d" % x for x in range(1,17)]
@@ -177,7 +244,6 @@ class Controller(app_manager.RyuApp):
                     s.connect((host, port))
                 except:
                     if flag==1:
-                        print g_switch[0].id
                         print 'Trying to Connect '+ host
                         flag=0;
                     break;
@@ -186,22 +252,28 @@ class Controller(app_manager.RyuApp):
                     s.send(sendBuff)
                     text = ''
                     text += s.recv(1024)
-                    find_text = re.findall(r'\d+',text)
-                    find_host = re.findall(r'\d+',host)
-                    #print text + ' from ' + host
-                    if int(find_text[0]) > 10000:
-                        destination = int(find_text[4])
-                        source = int(find_host[3])
-                        path_chosen = self.path_population(source)
-                        switches_changed = self.modify_path(path_chosen, source)
-                        print path_chosen, switches_changed
-                        print  source, ' to ', destination
-                        print 'Sent query to ' + host
-                        print 'Elephant flow ' + find_text[0]
-                    s.close# Close the socket when done
                 except:
                     print 'send failed '+ host
                     dummy = 1
+
+                find_text = re.findall(r'\d+',text)
+                find_host = re.findall(r'\d+',host)
+                #print text + ' from ' + host
+                if find_text == []:
+                    continue
+                if int(find_text[0]) > 10000:
+                    destination = int(find_text[4])
+                    source = int(find_host[3])
+                    path_chosen = self.path_population(source)
+                    switches_changed = self.modify_path(path_chosen, source)
+                    final = self.add_rules(switches_changed, destination, path_chosen)
+                    
+                    #print path_chosen, switches_changed
+                    #print  source, ' to ', destination
+                    #print 'Sent query to ' + host
+                    print 'Elephant flow ' + find_text[0] + ' from ' + host
+                s.close# Close the socket when done
+
             msleep(10)
         client.exit();
 
