@@ -97,6 +97,72 @@ class Controller(app_manager.RyuApp):
             #min(topo_link["a%dc%d"%((source - 3)/2, 0)], topo_link["a%dc%d"%((source - 3)/2, 1)], topo_link["a%dc%d"%(((source - 3)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 3)/2) + 1, 3)])
         return path_chosen
 
+    def modify_path(self, path_chosen, source):
+        global g_switch
+        if path_chosen == 'straight_one':
+            if (source % 4 < 3 and source / 4 != 1):
+                if source % 2 == 1:
+                    value = (source / 2) + 1
+                    switches_changed = [value, value + 8, 17]
+                else:
+                    value = source / 2
+                    switches_changed = [value, value + 8, 17]
+            else:
+                if source % 2 == 1:
+                    value = (source / 2) + 1
+                    switches_changed = [value, value + 8, 19]
+                else:
+                    value = source / 2
+                    switches_changed = [value, value + 8, 19]
+        elif path_chosen == 'straight_two':
+            if (source % 4 < 3 and source / 4 != 1):
+                if source % 2 == 1:
+                    value = (source / 2) + 1
+                    switches_changed = [value, value + 8, 18]
+                else:
+                    value = source / 2
+                    switches_changed = [value, value + 8, 18]
+            else:
+                if source % 2 == 1:
+                    value = (source / 2) + 1
+                    switches_changed = [value, value + 8, 20]
+                else:
+                    value = source / 2
+                    switches_changed = [value, value + 8, 20]
+        elif path_chosen == 'cross_one':
+            if (source % 4 < 3 and source / 4 != 1):
+                if source % 2 == 1:
+                    value = (source / 2) + 1
+                    switches_changed = [value, value + 9, 19]
+                else:
+                    value = source / 2
+                    switches_changed = [value, value + 9, 19]
+            else:
+                if source % 2 == 1:
+                    value = (source / 2) + 1
+                    switches_changed = [value, value + 7, 17]
+                else:
+                    value = source / 2
+                    switches_changed = [value, value + 7, 17]
+        elif path_chosen == 'cross_two':
+            if (source % 4 < 3 and source / 4 != 1):
+                if source % 2 == 1:
+                    value = (source / 2) + 1
+                    switches_changed = [value, value + 9, 20]
+                else:
+                    value = source / 2
+                    switches_changed = [value, value + 9, 20]
+            else:
+                if source % 2 == 1:
+                    value = (source / 2) + 1
+                    switches_changed = [value, value + 7, 18]
+                else:
+                    value = source / 2
+                    switches_changed = [value, value + 7, 18]
+        else:
+            print 'Something terribly is wrong'
+        return switches_changed
+
     def client(self):
         global g_switch
         hostall = ["20.0.0.%d" % x for x in range(1,17)]
@@ -127,13 +193,14 @@ class Controller(app_manager.RyuApp):
                         destination = int(find_text[4])
                         source = int(find_host[3])
                         path_chosen = self.path_population(source)
-                        print path_chosen
+                        switches_changed = self.modify_path(path_chosen, source)
+                        print path_chosen, switches_changed
                         print  source, ' to ', destination
                         print 'Sent query to ' + host
                         print 'Elephant flow ' + find_text[0]
                     s.close# Close the socket when done
                 except:
-                    print 'send failed '+host
+                    print 'send failed '+ host
                     dummy = 1
             msleep(10)
         client.exit();
