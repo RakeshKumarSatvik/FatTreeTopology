@@ -179,7 +179,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=15,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=3,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -189,7 +189,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=15,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -200,7 +200,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=15,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -210,7 +210,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=15,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -265,15 +265,27 @@ class Controller(app_manager.RyuApp):
                 if len(find_text) == 6:
                     destination = int(find_text[4])
                     source = int(find_host[3])
+                    
+                    left_side = (source - 1) / 4
+                    right_side = (destination - 1) / 4
+                        
                     flow_id = source * 100 + int(find_text[5])
                     
+                    #print text + ' from ' + host
                     if not unique.has_key(flow_id):
                         unique[flow_id] = 0
-                    # if count == 100:
+                    # if count == 40:
                         # count = 0
                         # unique = unique.fromkeys(unique, 0)
                     
-                    if int(find_text[0]) > 65536 and unique[flow_id] == 0:
+                    if unique.has_key(flow_id - 1) and unique[flow_id - 1] == 1:
+                        print 'Delete rules ', (flow_id - 1)
+                        unique[flow_id - 1] = 0
+
+                    if left_side == right_side:
+                        continue
+                        
+                    if int(find_text[0]) > 10000 and unique[flow_id] == 0:
                         path_chosen = self.path_population(source)
                         switches_changed = self.modify_path(path_chosen, source)
                         final = self.add_rules(switches_changed, destination, path_chosen)
@@ -281,7 +293,7 @@ class Controller(app_manager.RyuApp):
                         #print path_chosen, switches_changed
                         #print  source, ' to ', destination
                         #print 'Sent query to ' + host
-                        print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination
+                        print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination, ' with ' , flow_id
                     s.close# Close the socket when done
             msleep(100)
             count += 1

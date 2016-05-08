@@ -28,7 +28,7 @@ typedef struct{
 
 int remaining_bytes = 0;
 char sendBuff_IP[80];
-int flow_id;
+int flow_id = 1;
 
 int command_parser(trace_file *input, FILE *fp) {
     
@@ -91,8 +91,10 @@ void get_flow_state() {
     int optval;
     int listenfd = 0, connfd = 0;
     struct sockaddr_in receiver_addr; 
-    char recvBuff[1024], sendBuff[1024];
+    char *recvBuff, *sendBuff;
     
+    recvBuff = (char *)malloc(1024 * sizeof(char));
+    sendBuff = (char *)malloc(1024 * sizeof(char));
     //memset(destination_ip,0,sizeof(char) * 256);
     getifaddrs (&ifap);
     for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
@@ -108,7 +110,7 @@ void get_flow_state() {
     
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&receiver_addr, '0', sizeof(receiver_addr));
-    memset(recvBuff, '0', sizeof(recvBuff)); 
+    memset(recvBuff, '0', 1024); 
 
     receiver_addr.sin_family = AF_INET;
     receiver_addr.sin_port = htons(5000); 

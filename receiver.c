@@ -25,9 +25,11 @@ typedef struct{
 
 int command_parser(trace_file *input, FILE *fp) {
     
-    char buf[MAXDATASIZE];
+    char *buf;
     char *start_ptr, *tab_ptr;
 
+    buf = (char *)malloc(MAXDATASIZE * sizeof(char));
+    
     if(fgets(buf,80,fp) == NULL)
         return 1;
     
