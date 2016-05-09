@@ -182,7 +182,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=13,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -192,7 +192,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=13,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -203,7 +203,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=13,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -213,7 +213,7 @@ class Controller(app_manager.RyuApp):
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=13,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
@@ -272,18 +272,26 @@ class Controller(app_manager.RyuApp):
             #min(topo_link["a%dc%d"%((source - 3)/2, 0)], topo_link["a%dc%d"%((source - 3)/2, 1)], topo_link["a%dc%d"%(((source - 3)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 3)/2) + 1, 3)])
         return 1
         
-    def delete_rules(self, switches_changed, source, destination, path_chosen):
+    def delete_rules(self, switches_changed, source, dest, path_chosen):
         global g_switch
         self.path_depopulation(source, path_chosen)
         
-        for id in switches_changed:
-            for sw in g_switch:
-                if sw.id != id:
-                    continue
-                ofproto = sw.ofproto
-                ofp_parser = sw.ofproto_parser
-                ofp = ofproto
-                
+        # for id in switches_changed:
+            # for sw in g_switch:
+                # if sw.id != id:
+                    # continue
+                # ofproto = sw.ofproto
+                # ofp_parser = sw.ofproto_parser
+                # ofp = ofproto
+                # print 'Deleted ',id
+                # match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest), ipv4_src=((10 << 24) + source))
+                # mod = sw.ofproto_parser.OFPFlowMod(
+                        # datapath=sw, match=match, cookie=0,
+                        # command=ofproto.OFPFC_DELETE,
+                        # out_port=ofproto.OFPP_ANY,out_group=ofproto.OFPG_ANY,
+                        # flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=[])
+                # sw.send_msg(mod)
+
     def client(self):
         global g_switch
         hostall = ["20.0.0.%d" % x for x in range(1,17)]
@@ -332,13 +340,20 @@ class Controller(app_manager.RyuApp):
                     
                     left_side = (source - 1) / 4
                     right_side = (destination[flow_id] - 1) / 4
-                    
-                    # if left_side == right_side:
-                        # continue
 
                     #print text + ' from ' + host
                     if not unique.has_key(flow_id):
                         unique[flow_id] = 0
+
+                    # for remove_id in xrange(1,int(find_text[5])):
+                        # if (unique.has_key(flow_id - remove_id) and unique[flow_id - remove_id] == 1):
+                            # print 'Delete rules ', (flow_id - remove_id), ' switches ', switches_changed[flow_id - remove_id]
+                            # unique[flow_id - remove_id] = 0
+                            # self.delete_rules(switches_changed[flow_id-remove_id], source, destination[flow_id-remove_id], path_chosen[flow_id-remove_id])
+                            # count -= 1
+
+                    if left_side == right_side:
+                        continue
                     
                     #print 'Elephant flow ' + find_text[0] + ' from ' + host
                     if (int(find_text[0]) > 10000 and unique[flow_id] == 0) and (left_side != right_side):
@@ -350,14 +365,9 @@ class Controller(app_manager.RyuApp):
                         #print path_chosen, switches_changed
                         #print  source, ' to ', destination
                         #print 'Sent query to ' + host
-                        print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination[flow_id], ' with ' , flow_id
-                    for remove_id in xrange(1,int(find_text[5])):
-                        if (unique.has_key(flow_id - remove_id) and unique[flow_id - remove_id] == 1):
-                            print 'Delete rules ', (flow_id - remove_id)
-                            unique[flow_id - remove_id] = 0
-                            self.delete_rules(switches_changed[flow_id-remove_id], source, destination[flow_id-remove_id], path_chosen[flow_id-remove_id])
-                            count -= 1
-            msleep(10)
+                        print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination[flow_id], ' with ' , flow_id, switches_changed[flow_id]
+
+            msleep(50)
         client.exit();
 
     def __init__(self):
