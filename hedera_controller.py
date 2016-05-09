@@ -317,13 +317,14 @@ class Controller(app_manager.RyuApp):
                     print 'send failed '+ host
                     dummy = 1
 
+                s.close# Close the socket when done
                 find_text = re.findall(r'\d+',text)
                 find_host = re.findall(r'\d+',host)
                 if find_text == []:
                     continue
                 if find_host == []:
                     continue
-                
+
                 if len(find_text) == 6:
                     source = int(find_host[3])
                     flow_id = source * 100 + int(find_text[5])
@@ -332,14 +333,15 @@ class Controller(app_manager.RyuApp):
                     left_side = (source - 1) / 4
                     right_side = (destination[flow_id] - 1) / 4
                     
-                    if left_side == right_side:
-                        continue
-                    
+                    # if left_side == right_side:
+                        # continue
+
                     #print text + ' from ' + host
                     if not unique.has_key(flow_id):
                         unique[flow_id] = 0
-                                            
-                    if int(find_text[0]) > 10000 and unique[flow_id] == 0:
+                    
+                    #print 'Elephant flow ' + find_text[0] + ' from ' + host
+                    if (int(find_text[0]) > 10000 and unique[flow_id] == 0) and (left_side != right_side):
                         path_chosen[flow_id] = self.path_population(source)
                         switches_changed[flow_id] = self.modify_path(path_chosen[flow_id], source)
                         final = self.add_rules(switches_changed[flow_id], source, destination[flow_id], path_chosen[flow_id])
@@ -348,16 +350,14 @@ class Controller(app_manager.RyuApp):
                         #print path_chosen, switches_changed
                         #print  source, ' to ', destination
                         #print 'Sent query to ' + host
-                        #print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination[flow_id], ' with ' , flow_id
-                    
+                        print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination[flow_id], ' with ' , flow_id
                     for remove_id in xrange(1,int(find_text[5])):
                         if (unique.has_key(flow_id - remove_id) and unique[flow_id - remove_id] == 1):
-                            #print 'Delete rules ', (flow_id - remove_id)
+                            print 'Delete rules ', (flow_id - remove_id)
                             unique[flow_id - remove_id] = 0
                             self.delete_rules(switches_changed[flow_id-remove_id], source, destination[flow_id-remove_id], path_chosen[flow_id-remove_id])
                             count -= 1
-                    s.close# Close the socket when done
-            msleep(50)
+            msleep(10)
         client.exit();
 
     def __init__(self):

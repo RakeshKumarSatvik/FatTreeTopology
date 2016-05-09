@@ -15,7 +15,7 @@ http://developerweb.net/viewtopic.php?id=2933
 #include <sys/types.h>
 #include <time.h> 
 
-#define MAXDATASIZE 10000
+#define MAXDATASIZE 65536
 #define min(a, b) (((a) < (b)) ? (a) : (b)) 
 #define max(a, b) (((a) > (b)) ? (a) : (b)) 
 
