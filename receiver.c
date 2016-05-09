@@ -15,7 +15,7 @@ http://developerweb.net/viewtopic.php?id=2933
 #include <sys/types.h>
 #include <time.h> 
 
-#define MAXDATASIZE 65536
+#define MAXDATASIZE 10000
 #define min(a, b) (((a) < (b)) ? (a) : (b)) 
 #define max(a, b) (((a) > (b)) ? (a) : (b)) 
 
@@ -33,7 +33,7 @@ int command_parser(trace_file *input, FILE *fp) {
     if(fgets(buf,80,fp) == NULL)
         return 1;
     
-    printf("\nReading from the file.\n");
+    // printf("\nReading from the file.\n");
     tab_ptr = buf;
     do {
         start_ptr = tab_ptr;
@@ -42,7 +42,7 @@ int command_parser(trace_file *input, FILE *fp) {
          *tab_ptr++ = '\0';
         }
         input->port_number = atoi(start_ptr);
-        printf("PortNumber : %d\n",input->port_number);
+        // printf("PortNumber : %d\n",input->port_number);
 
     } while(tab_ptr != NULL);    
     return 0;

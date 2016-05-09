@@ -59,7 +59,7 @@ class Controller(app_manager.RyuApp):
                 topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)] +=1
                 topo_link["a%dc%d"%(((source - 1)/2) + 1, 3)] += 1
             else:
-                print 'Something terribly is wrong'
+                print 'Something terribly is wrong in if of path_population'
             #min(e0a0,e0a1)
             #min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))], topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)])
             #min(a0c0,a0c1,a1c2,a1c3)
@@ -91,6 +91,8 @@ class Controller(app_manager.RyuApp):
                 path_chosen = 'cross_two'
                 topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)] += 1
                 topo_link["a%dc%d"%((source - 3)/2, 1)] += 1
+            else:
+                print 'Something terribly is wrong else of path_population'
             #min(e1a0,e1a1)
             #min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)], topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)])
             #min(a0c0,a0c1,a1c2,a1c3)
@@ -98,6 +100,7 @@ class Controller(app_manager.RyuApp):
         return path_chosen
 
     def modify_path(self, path_chosen, source):
+        switches_changed = None
         if path_chosen == 'straight_one':
             if (source % 4 < 3 and source / 4 != 1):
                 if source % 2 == 1:
@@ -159,10 +162,10 @@ class Controller(app_manager.RyuApp):
                     value = source / 2
                     switches_changed = [value, value + 7, 18]
         else:
-            print 'Something terribly is wrong'
+            print 'Something terribly is wrong in modify_path'
         return switches_changed
     
-    def add_rules(self, switches_changed, dest, path_chosen):
+    def add_rules(self, switches_changed, source, dest, path_chosen):
         global g_switch
         for id in switches_changed:
             for sw in g_switch:
@@ -174,49 +177,49 @@ class Controller(app_manager.RyuApp):
                 
                 if(id < 9):
                     if path_chosen == 'straight_one' or path_chosen == 'straight_two':
-                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest), ipv4_src=((10 << 24) + source))
                         action = sw.ofproto_parser.OFPActionOutput(3)
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=3,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
                     elif path_chosen == 'cross_one' or path_chosen == 'cross_two':
-                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest), ipv4_src=((10 << 24) + source))
                         action = sw.ofproto_parser.OFPActionOutput(4)
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
                 elif id < 17:
                     if path_chosen == 'straight_one' or path_chosen == 'cross_one':
-                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest), ipv4_src=((10 << 24) + source))
                         action = sw.ofproto_parser.OFPActionOutput(3)
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
                     elif path_chosen == 'straight_two' or path_chosen == 'cross_two':
-                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                        match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest), ipv4_src=((10 << 24) + source))
                         action = sw.ofproto_parser.OFPActionOutput(4)
                         inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                         mod = sw.ofproto_parser.OFPFlowMod(
                                 datapath=sw, match=match, cookie=0,
-                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=5,
+                                command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
                                 priority=1100,
                                 flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                         sw.send_msg(mod)
                 elif id < 21:
                     dummy = None
-                    # match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest))
+                    # match = sw.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_dst=((10 << 24) + dest), ipv4_src=((10 << 24) + source))
                     # action = sw.ofproto_parser.OFPActionOutput(1)
                     # inst = [ofp_parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, [action])]
                     # mod = sw.ofproto_parser.OFPFlowMod(
@@ -226,7 +229,61 @@ class Controller(app_manager.RyuApp):
                             # flags=ofproto.OFPFF_SEND_FLOW_REM, instructions=inst)
                     # sw.send_msg(mod)            
         return 1
+    
+    def path_depopulation(self, source, path_chosen):
+        global topo_link
+        if (source % 4 < 3 and source % 4 != 0):            
+            if path_chosen == 'straight_one':
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))] -= 1
+                topo_link["a%dc%d"%((source - 1)/2, 0)] -= 1
+            elif path_chosen == 'straight_two':
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))] -= 1
+                topo_link["a%dc%d"%((source - 1)/2, 1)] -= 1
+            elif path_chosen == 'cross_one':
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)] -= 1
+                topo_link["a%dc%d"%(((source - 1)/2) + 1, 2)] -= 1
+            elif path_chosen == 'cross_two':
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)] -=1
+                topo_link["a%dc%d"%(((source - 1)/2) + 1, 3)] -= 1
+            else:
+                print 'Something terribly is wrong in if of path_population'
+            #min(e0a0,e0a1)
+            #min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2))], topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) + 1)])
+            #min(a0c0,a0c1,a1c2,a1c3)
+            #min(topo_link["a%dc%d"%((source - 1)/2, 0)], topo_link["a%dc%d"%((source - 1)/2, 1)], topo_link["a%dc%d"%(((source - 1)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 1)/2) + 1, 3)])
+        else:           
+            if path_chosen == 'straight_one':
+                topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)] -= 1
+                topo_link["a%dc%d"%(((source - 3)/2) + 1, 2)] -= 1
+            elif path_chosen == 'straight_two':
+                topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)] -= 1
+                topo_link["a%dc%d"%(((source - 3)/2) + 1, 3)] -= 1
+            elif path_chosen == 'cross_one':
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)] -=1
+                topo_link["a%dc%d"%((source - 3)/2, 0)] -= 1
+            elif path_chosen == 'cross_two':
+                topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)] -= 1
+                topo_link["a%dc%d"%((source - 3)/2, 1)] -= 1
+            else:
+                print 'Something terribly is wrong else of path_population'
+            #min(e1a0,e1a1)
+            #min(topo_link["e%da%d"%((source - 1)/2,((source - 1)/2) - 1)], topo_link["e%da%d"%((source - 1)/2,(source - 1)/2)])
+            #min(a0c0,a0c1,a1c2,a1c3)
+            #min(topo_link["a%dc%d"%((source - 3)/2, 0)], topo_link["a%dc%d"%((source - 3)/2, 1)], topo_link["a%dc%d"%(((source - 3)/2) + 1, 2)],  topo_link["a%dc%d"%(((source - 3)/2) + 1, 3)])
+        return 1
         
+    def delete_rules(self, switches_changed, source, destination, path_chosen):
+        global g_switch
+        self.path_depopulation(source, path_chosen)
+        
+        for id in switches_changed:
+            for sw in g_switch:
+                if sw.id != id:
+                    continue
+                ofproto = sw.ofproto
+                ofp_parser = sw.ofproto_parser
+                ofp = ofproto
+                
     def client(self):
         global g_switch
         hostall = ["20.0.0.%d" % x for x in range(1,17)]
@@ -236,6 +293,9 @@ class Controller(app_manager.RyuApp):
         flag = 1
         unique = {}
         count = 0
+        switches_changed = {}
+        path_chosen = {}
+        destination = {}
         while (1):
             for host in hostall:
                 s = socket.socket()         # Create a socket object
@@ -244,6 +304,8 @@ class Controller(app_manager.RyuApp):
                 except:
                     if flag==1:
                         print 'Trying to Connect '+ host
+                        print 'count value ', count
+                        #print topo_link.items()
                         flag=0;
                     break;
                 flag=1;
@@ -263,40 +325,39 @@ class Controller(app_manager.RyuApp):
                     continue
                 
                 if len(find_text) == 6:
-                    destination = int(find_text[4])
                     source = int(find_host[3])
+                    flow_id = source * 100 + int(find_text[5])
+                    destination[flow_id] = int(find_text[4])
                     
                     left_side = (source - 1) / 4
-                    right_side = (destination - 1) / 4
-                        
-                    flow_id = source * 100 + int(find_text[5])
+                    right_side = (destination[flow_id] - 1) / 4
+                    
+                    if left_side == right_side:
+                        continue
                     
                     #print text + ' from ' + host
                     if not unique.has_key(flow_id):
                         unique[flow_id] = 0
-                    # if count == 40:
-                        # count = 0
-                        # unique = unique.fromkeys(unique, 0)
-                    
-                    if unique.has_key(flow_id - 1) and unique[flow_id - 1] == 1:
-                        print 'Delete rules ', (flow_id - 1)
-                        unique[flow_id - 1] = 0
-
-                    if left_side == right_side:
-                        continue
-                        
+                                            
                     if int(find_text[0]) > 10000 and unique[flow_id] == 0:
-                        path_chosen = self.path_population(source)
-                        switches_changed = self.modify_path(path_chosen, source)
-                        final = self.add_rules(switches_changed, destination, path_chosen)
+                        path_chosen[flow_id] = self.path_population(source)
+                        switches_changed[flow_id] = self.modify_path(path_chosen[flow_id], source)
+                        final = self.add_rules(switches_changed[flow_id], source, destination[flow_id], path_chosen[flow_id])
                         unique[flow_id] = 1
+                        count += 1
                         #print path_chosen, switches_changed
                         #print  source, ' to ', destination
                         #print 'Sent query to ' + host
-                        print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination, ' with ' , flow_id
+                        #print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination[flow_id], ' with ' , flow_id
+                    
+                    for remove_id in xrange(1,int(find_text[5])):
+                        if (unique.has_key(flow_id - remove_id) and unique[flow_id - remove_id] == 1):
+                            #print 'Delete rules ', (flow_id - remove_id)
+                            unique[flow_id - remove_id] = 0
+                            self.delete_rules(switches_changed[flow_id-remove_id], source, destination[flow_id-remove_id], path_chosen[flow_id-remove_id])
+                            count -= 1
                     s.close# Close the socket when done
-            msleep(100)
-            count += 1
+            msleep(50)
         client.exit();
 
     def __init__(self):

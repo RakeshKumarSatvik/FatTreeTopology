@@ -17,7 +17,7 @@ http://stackoverflow.com/questions/4139405/how-can-i-get-to-know-the-ip-address-
 #include <pthread.h>
 #include <ifaddrs.h>
 
-#define MAXDATASIZE 65536
+#define MAXDATASIZE 10000
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
 typedef struct{
@@ -28,7 +28,7 @@ typedef struct{
 
 int remaining_bytes = 0;
 char sendBuff_IP[80];
-int flow_id = 1;
+int flow_id = 0;
 
 int command_parser(trace_file *input, FILE *fp) {
     
@@ -39,7 +39,7 @@ int command_parser(trace_file *input, FILE *fp) {
     
     if(fgets(buf,80,fp) == NULL)
         return 1;
-    printf("\nReading from the file.\n");
+    // printf("\nReading from the file.\n");
     
     tab_ptr = buf;
     do {
@@ -51,10 +51,10 @@ int command_parser(trace_file *input, FILE *fp) {
 
         switch(count){
             case 1: strcpy(input->destination_ip, start_ptr);
-                    printf("Destination : %s\n",input->destination_ip);
+                    // printf("Destination : %s\n",input->destination_ip);
                     break;
             case 3: input->port_number = atoi(start_ptr);
-                    printf("Port Number : %d\n",input->port_number);
+                    // printf("Port Number : %d\n",input->port_number);
                     break;
             case 5: input->file_size = 1;
                     input->file_size = atoi(start_ptr);
@@ -68,7 +68,7 @@ int command_parser(trace_file *input, FILE *fp) {
                     } else if(strcmp(comp,"G") == 0 || strcmp(&comp1,"G") >= 1) {
                         input->file_size *= pow(10,9);
                     }
-                    printf("File Size : %d\n",input->file_size);
+                    // printf("File Size : %d\n",input->file_size);
                     break;
         }
         count++;
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
         if(return_value)
             break;
         strcpy(sendBuff_IP, input.destination_ip);
-        flow_id++;
+
         if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             printf("\n Error : Could not create socket \n");
@@ -202,7 +202,8 @@ int main(int argc, char *argv[]) {
         recvBuff = (char *)malloc(MAXDATASIZE * sizeof(char));
         populate_buffer(recvBuff);
         remaining_bytes = input.file_size;
-        
+        if(remaining_bytes > 0)
+            flow_id++;
         while(remaining_bytes > 0) {
             bytes_to_write = min(MAXDATASIZE, remaining_bytes);
             bytes_written = send(sockfd, recvBuff, bytes_to_write,0);
@@ -216,6 +217,7 @@ int main(int argc, char *argv[]) {
         }
         close(sockfd);
     }
+    flow_id++;
     pthread_join(hedera_controller_handle,0);
     return 0;
 }
