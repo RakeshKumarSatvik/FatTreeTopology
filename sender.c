@@ -17,7 +17,7 @@ http://stackoverflow.com/questions/4139405/how-can-i-get-to-know-the-ip-address-
 #include <pthread.h>
 #include <ifaddrs.h>
 
-#define MAXDATASIZE 65536
+#define MAXDATASIZE 10000
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
 typedef struct{

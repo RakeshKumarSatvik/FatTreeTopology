@@ -356,7 +356,7 @@ class Controller(app_manager.RyuApp):
                         continue
                     
                     #print 'Elephant flow ' + find_text[0] + ' from ' + host
-                    if (int(find_text[0]) > 65536 and unique[flow_id] == 0):
+                    if (int(find_text[0]) > 10000 and unique[flow_id] == 0):
                         path_chosen[flow_id] = self.path_population(source)
                         switches_changed[flow_id] = self.modify_path(path_chosen[flow_id], source)
                         final = self.add_rules(switches_changed[flow_id], source, destination[flow_id], path_chosen[flow_id])
@@ -367,7 +367,7 @@ class Controller(app_manager.RyuApp):
                         #print 'Sent query to ' + host
                         print 'Elephant flow ' + find_text[0] + ' from ', source , ' to ' , destination[flow_id], ' with ' , flow_id, switches_changed[flow_id]
 
-            msleep(150)
+            msleep(200)
         client.exit();
 
     def __init__(self):
